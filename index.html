@@ -19,7 +19,7 @@
 --okbg:light-dark(#e3f4ea,#173a2a);--ng:light-dark(#b4410f,#ff9a66);--ngbg:light-dark(#fdeadf,#40261a)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-   [hidden]{display:none!important}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Zen Kaku Gothic New",system-ui,sans-serif;overflow-x:clip}
 header{background:var(--sea);color:var(--seaink);padding:18px max(4vw,16px) 0}
 .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1000px;margin:0 auto}
@@ -176,7 +176,7 @@ const ITEMS=[
 ];
 /* ▼ Google Apps Script の「ウェブアプリURL」をここに貼る */
 const GAS_URL='https://script.google.com/macros/s/AKfycbwXEov3zHTyi_w9Y9OrSdjU8vVWcKPLGBtRWaAKnTSt1gW3UiN1CKL803BFVQtTDIaBPA/exec';
-const DEF_PLACES=['三浦市サンフラワーファーム','アクアポニックスカフェ'];
+const DEF_PLACES=['アクアポニックスカフェ'];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -206,8 +206,8 @@ ITEMS.forEach((it,i)=>{const el=$('f-'+it.k);
     if(e.isComposing||e.keyCode===229){if(e.key==='Enter'||e.keyCode===229)pend=e.key==='Enter';return}
     e.preventDefault();go()});
   el.addEventListener('compositionend',()=>{if(pend){pend=false;setTimeout(()=>{const c=z2h(el.value);if(c!==el.value){el.value=c;paintItem(it.k)}},0)}})});
-function resetForm(){const d=new Date();$('f-date').value=d.toLocaleDateString('sv-SE');$('f-time').value=d.toTimeString().slice(0,5);ITEMS.forEach(i=>{$('f-'+i.k).value='';paintItem(i.k)});$('f-memo').value='';$('f-place').value=ls.get('wq_place',DEF_PLACES[0]);$('f-member').value=ls.get('wq_member','');editId=null;$('save').textContent='保存する';$('cancel').hidden=true}
-function loadForm(r){show('input');editId=r.id;const d=new Date(r.ts);$('f-date').value=d.toLocaleDateString('sv-SE');$('f-time').value=fmtT(r);$('f-place').value=r.place||'';$('f-member').value=r.member||'';$('f-memo').value=r.memo||'';ITEMS.forEach(i=>{const v=r.v?.[i.k];$('f-'+i.k).value=v==null?'':v;paintItem(i.k)});$('save').textContent='更新する';$('cancel').hidden=false;window.scrollTo({top:0})}
+function resetForm(){const d=new Date();$('f-date').value=d.toLocaleDateString('sv-SE');$('f-time').value=d.toTimeString().slice(0,5);ITEMS.forEach(i=>{$('f-'+i.k).value='';paintItem(i.k)});$('f-memo').value='';{const fp=$('f-place'),w=ls.get('wq_place','');if([...fp.options].some(o=>o.value===w))fp.value=w}$('f-member').value=ls.get('wq_member','');editId=null;$('save').textContent='保存する';$('cancel').hidden=true}
+function loadForm(r){show('input');editId=r.id;const d=new Date(r.ts);$('f-date').value=d.toLocaleDateString('sv-SE');$('f-time').value=fmtT(r);{const fp=$('f-place');if(r.place&&![...fp.options].some(o=>o.value===r.place))fp.add(new Option(r.place,r.place));fp.value=r.place||''}$('f-member').value=r.member||'';$('f-memo').value=r.memo||'';ITEMS.forEach(i=>{const v=r.v?.[i.k];$('f-'+i.k).value=v==null?'':v;paintItem(i.k)});$('save').textContent='更新する';$('cancel').hidden=false;window.scrollTo({top:0})}
 $('cancel').onclick=resetForm;
 $('form').addEventListener('submit',async e=>{e.preventDefault();
   const v={};ITEMS.forEach(i=>{const x=$('f-'+i.k).value;if(x!=='')v[i.k]=Number(x)});
@@ -284,7 +284,7 @@ $('s-save').onclick=async()=>{const ranges={};ITEMS.forEach(i=>{const a=$('lo-'+
   const pl=$('s-places').value.split('\n').map(s=>s.trim()).filter(Boolean);
   try{await saveSettings({ranges,places:pl.length?pl:DEF_PLACES.slice()});flash('smsg','保存しました')}catch(e){flash('smsg',errText(e),true)}};
 
-function renderAll(){renderLatest();const pl=places();const fp=$('f-place'),fcur=fp.value||ls.get('wq_place',pl[0]);fillSelect(fp,pl.map(p=>[p,p]));if(pl.includes(fcur))fp.value=fcur;
+function renderAll(){renderLatest();const pl=places(),ip=(settings.places&&settings.places.length)?settings.places:DEF_PLACES;const fp=$('f-place'),fcur=fp.value||ls.get('wq_place',ip[0]);fillSelect(fp,ip.map(p=>[p,p]));fp.value=ip.includes(fcur)?fcur:ip[0];
   $('places').innerHTML=pl.map(p=>`<option value="${esc(p)}">`).join('');
   fillSelect($('h-place'),[['','すべての場所'],...pl.map(p=>[p,p])],true);
   fillSelect($('c-place'),[['','すべての場所'],...pl.map(p=>[p,p])],true);
